@@ -17,6 +17,6 @@ gcloud compute instances create $INSTANCE_NAME \
         --preemptible
 		
 		
-gcloud compute ssh --zone=$ZONE jupyter@$INSTANCE_NAME -- -L 8080:localhost:8080
+gcloud compute ssh --zone=$ZONE jupyter@$INSTANCE_NAME -- -L 8080:localhost:8080 
 
 
