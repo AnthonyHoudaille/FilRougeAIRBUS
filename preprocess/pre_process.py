@@ -67,7 +67,7 @@ def masks_as_color(in_mask_list):
     return all_masks
 
 
-def balancing_train(df, rate_of_has_ship, ship_dir):
+def balancing_train(df, rate_of_has_ship, ship_dir_train):
     
     df['ships'] = df['EncodedPixels'].map(lambda c_row: 1 if isinstance(c_row, str) else 0)
 
@@ -76,8 +76,7 @@ def balancing_train(df, rate_of_has_ship, ship_dir):
     unique_img_ids.has_ship = unique_img_ids.has_ship.astype(int)
     # some files are too small/corrupt
     unique_img_ids['file_size_kb'] = unique_img_ids['ImageId'].map(lambda c_img_id: 
-                                                               os.stat(os.path.join(ship_dir + "Train", 
-                                                                                        c_img_id)).st_size/1024)
+                                                               os.stat(ship_dir_train, c_img_id)).st_size/1024)
     unique_img_ids = unique_img_ids[unique_img_ids['file_size_kb'] > 80] # keep only +50kb files
 
     count_img_with_ships = len(unique_img_ids[unique_img_ids.has_ship == 1])
