@@ -76,7 +76,7 @@ def balancing_train(df, rate_of_has_ship, ship_dir_train):
     unique_img_ids.has_ship = unique_img_ids.has_ship.astype(int)
     # some files are too small/corrupt
     unique_img_ids['file_size_kb'] = unique_img_ids['ImageId'].map(lambda c_img_id: 
-                                                               os.stat(ship_dir_train, c_img_id)).st_size/1024)
+                                                               os.stat(os.path.join(ship_dir_train, c_img_id)).st_size/1024)
     unique_img_ids = unique_img_ids[unique_img_ids['file_size_kb'] > 80] # keep only +50kb files
 
     count_img_with_ships = len(unique_img_ids[unique_img_ids.has_ship == 1])
