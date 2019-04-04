@@ -49,3 +49,9 @@ kaggle competitions download -c airbus-ship-detection
 unzip test_v2.zip -d test
 unzip train_v2.zip -d train
 unzip train_ship_segmentations_v2.csv
+
+
+echo "
+----------------------------------
+Make the data readable"
+chmod -R 777 ./
