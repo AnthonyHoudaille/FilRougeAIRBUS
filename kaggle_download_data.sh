@@ -4,6 +4,8 @@
 # data_dir example: ~/data/airbus_ship_detection
 # Token kaggle dir example: ~/kaggle.json
 
+# example running script: kaggle_download_data.sh ~/data/airbus_ship_detection ~/kaggle.json
+
 echo "install kaggle" 
 sudo pip install kaggle --upgrade
 
