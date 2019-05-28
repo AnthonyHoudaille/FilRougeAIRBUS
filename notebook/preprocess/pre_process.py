@@ -91,26 +91,45 @@ def balancing_train(df, rate_of_has_ship, ship_dir_train):
     df_train = balanced_train_df[["ImageId", "ships", "has_ship"]].reset_index(drop=True)
     return balanced_train_df
 
+# def make_image_gen(in_df, train_image_dir, batch_size=48, img_scalling=None):
+#     all_batches = list(in_df.groupby('ImageId'))
+#     out_rgb = []
+#     out_mask = []
+#     while True:
+#         np.random.shuffle(all_batches)
+#         for c_img_id, c_masks in all_batches:
+#             rgb_path = os.path.join(train_image_dir, c_img_id)
+#             c_img = imread(rgb_path)
+#             # c_mask = np.expand_dims(masks_as_image(c_masks['EncodedPixels'].values), -1)
+            
+#             if img_scalling is not None:
+#                 c_img = c_img[::img_scalling[0], ::img_scalling[1]]
+#                 c_mask = c_mask[::img_scalling[0], ::img_scalling[1]]
+                
+#             out_rgb += [c_img]
+#             out_mask += [c_mask]
+#             if len(out_rgb)>=batch_size:
+#                 yield np.stack(out_rgb, 0)/255.0, np.stack(out_mask, 0)
+#                 out_rgb, out_mask=[], []
+                
 def make_image_gen(in_df, train_image_dir, batch_size=48, img_scalling=None):
     all_batches = list(in_df.groupby('ImageId'))
     out_rgb = []
-    out_mask = []
+    out_label = []
     while True:
         np.random.shuffle(all_batches)
-        for c_img_id, c_masks in all_batches:
+        for c_img_id, c_label in all_batches:
             rgb_path = os.path.join(train_image_dir, c_img_id)
             c_img = imread(rgb_path)
-            c_mask = np.expand_dims(masks_as_image(c_masks['EncodedPixels'].values), -1)
             
             if img_scalling is not None:
                 c_img = c_img[::img_scalling[0], ::img_scalling[1]]
-                c_mask = c_mask[::img_scalling[0], ::img_scalling[1]]
                 
-            out_rgb += [c_img]
-            out_mask += [c_mask]
+            out_rgb.append(c_img)
+            out_label.append(c_label.has_ship.values[0])
             if len(out_rgb)>=batch_size:
-                yield np.stack(out_rgb, 0)/255.0, np.stack(out_mask, 0)
-                out_rgb, out_mask=[], []
+                yield np.stack(out_rgb, 0)/255.0, np.array(out_label)
+                out_rgb, out_label=[], []             
     
 
 from keras.preprocessing.image import ImageDataGenerator
