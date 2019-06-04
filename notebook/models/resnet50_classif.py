@@ -3,10 +3,11 @@
 from keras.applications import ResNet50
 from keras import models
 from keras import layers
+from keras import backend as K
 
 
 def get_resnet50_classif(input_shape, weights='imagenet'):
-
+    K.clear_session()
     model_base = ResNet50(include_top=False, weights=weights)
     
     Inputs = layers.Input(shape=input_shape)

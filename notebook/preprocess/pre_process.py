@@ -84,9 +84,11 @@ def balancing_train(df, rate_of_has_ship, ship_dir_train):
     #count_with_no_ship > count_with_ship
     #Take maximum of images on img_with_ship
     #Take maximum_img_no_ship on images data set (randomly choosen)
-    balanced_train_df = unique_img_ids[unique_img_ids.has_ship == 1]
-    balanced_train_df = balanced_train_df.append(unique_img_ids[unique_img_ids.has_ship == 0].sample(max_img_no_ship), ignore_index=True)
-
+    if rate_of_has_ship!= 0:
+        balanced_train_df = unique_img_ids[unique_img_ids.has_ship == 1]
+        balanced_train_df = balanced_train_df.append(unique_img_ids[unique_img_ids.has_ship == 0].sample(max_img_no_ship), ignore_index=True)
+    else:
+        balanced_train_df = unique_img_ids
 
     df_train = balanced_train_df[["ImageId", "ships", "has_ship"]].reset_index(drop=True)
     return balanced_train_df
