@@ -106,7 +106,7 @@ def make_image_gen(in_df, train_image_dir, batch_size=48, img_scalling=None):
         for c_img_id, c_masks in all_batches:
             rgb_path = os.path.join(train_image_dir, c_img_id)
             c_img = imread(rgb_path)
-            c_mask = masks_as_image(c_masks['EncodedPixels'].values)
+            c_mask = np.expand_dims(masks_as_image(c_masks['EncodedPixels'].values), -1)
             if img_scalling is not None:
                 c_img = c_img[::img_scalling[0], ::img_scalling[1]]
                 c_mask = c_mask[::img_scalling[0], ::img_scalling[1]]
