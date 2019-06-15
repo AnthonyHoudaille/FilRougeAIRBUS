@@ -7,6 +7,8 @@ from skimage.data import imread
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from skimage.morphology import binary_opening, disk, label
+from keras.preprocessing.image import ImageDataGenerator
+
 
 def multi_rle_encode(img, **kwargs):
     '''
@@ -69,72 +71,51 @@ def masks_as_color(in_mask_list):
 
 def balancing_train(df, rate_of_has_ship, ship_dir_train):
     
-    df['ships'] = df['EncodedPixels'].map(lambda c_row: 1 if isinstance(c_row, str) else 0)
-
-    unique_img_ids = df.groupby('ImageId').agg({'ships': 'sum'}).reset_index()
-    unique_img_ids['has_ship'] = unique_img_ids['ships'].map(lambda x: 1.0 if x>0 else 0.0)
-    unique_img_ids.has_ship = unique_img_ids.has_ship.astype(int)
+    df_temp = df[["ImageId", "EncodedPixels"]].reset_index(drop=True)
+    
+    
     # some files are too small/corrupt
-    unique_img_ids['file_size_kb'] = unique_img_ids['ImageId'].map(lambda c_img_id: 
+    df_temp['file_size_kb'] = df_temp['ImageId'].map(lambda c_img_id: 
                                                                os.stat(os.path.join(ship_dir_train, c_img_id)).st_size/1024)
-    unique_img_ids = unique_img_ids[unique_img_ids['file_size_kb'] > 80] # keep only +50kb files
+    df_temp = df_temp[df_temp['file_size_kb'] > 80] # keep only +50kb files
 
-    count_img_with_ships = len(unique_img_ids[unique_img_ids.has_ship == 1])
+    count_img_with_ships = len(df_temp[df_temp.EncodedPixels.notnull()])
     max_img_no_ship = round((1-rate_of_has_ship)*2*count_img_with_ships)
+    
     #count_with_no_ship > count_with_ship
     #Take maximum of images on img_with_ship
     #Take maximum_img_no_ship on images data set (randomly choosen)
-    if rate_of_has_ship!= 0:
-        balanced_train_df = unique_img_ids[unique_img_ids.has_ship == 1]
-        balanced_train_df = balanced_train_df.append(unique_img_ids[unique_img_ids.has_ship == 0].sample(max_img_no_ship), ignore_index=True)
-    else:
-        balanced_train_df = unique_img_ids
+    if rate_of_has_ship != 0:
+        balanced_train_df = df_temp[df_temp.EncodedPixels.notnull()]
+        balanced_train_df = balanced_train_df.append(df_temp[df_temp.EncodedPixels.isna()].sample(max_img_no_ship), ignore_index=True)
+    elif rate_of_has_ship == 1:
+        balanced_train_df = df_temp
+    elif rate_of_has_ship == 1:
+        balanced_train_df = df_temp[df_temp.EncodedPixels.notnull()]
 
-    df_train = balanced_train_df[["ImageId", "ships", "has_ship"]].reset_index(drop=True)
+    df_train = balanced_train_df[["ImageId", "EncodedPixels"]].reset_index(drop=True)
     return df_train
 
-# def make_image_gen(in_df, train_image_dir, batch_size=48, img_scalling=None):
-#     all_batches = list(in_df.groupby('ImageId'))
-#     out_rgb = []
-#     out_mask = []
-#     while True:
-#         np.random.shuffle(all_batches)
-#         for c_img_id, c_masks in all_batches:
-#             rgb_path = os.path.join(train_image_dir, c_img_id)
-#             c_img = imread(rgb_path)
-#             # c_mask = np.expand_dims(masks_as_image(c_masks['EncodedPixels'].values), -1)
-            
-#             if img_scalling is not None:
-#                 c_img = c_img[::img_scalling[0], ::img_scalling[1]]
-#                 c_mask = c_mask[::img_scalling[0], ::img_scalling[1]]
-                
-#             out_rgb += [c_img]
-#             out_mask += [c_mask]
-#             if len(out_rgb)>=batch_size:
-#                 yield np.stack(out_rgb, 0)/255.0, np.stack(out_mask, 0)
-#                 out_rgb, out_mask=[], []
-                
+
 def make_image_gen(in_df, train_image_dir, batch_size=48, img_scalling=None):
     all_batches = list(in_df.groupby('ImageId'))
     out_rgb = []
-    out_label = []
+    out_mask = []
     while True:
         np.random.shuffle(all_batches)
-        for c_img_id, c_label in all_batches:
+        for c_img_id, c_masks in all_batches:
             rgb_path = os.path.join(train_image_dir, c_img_id)
             c_img = imread(rgb_path)
-            
+            c_mask = masks_as_image(c_masks['EncodedPixels'].values)
             if img_scalling is not None:
                 c_img = c_img[::img_scalling[0], ::img_scalling[1]]
-                
-            out_rgb.append(c_img)
-            out_label.append(c_label.has_ship.values[0])
+                c_mask = c_mask[::img_scalling[0], ::img_scalling[1]]
+            out_rgb += [c_img]
+            out_mask += [c_mask]
             if len(out_rgb)>=batch_size:
-                yield np.stack(out_rgb, 0)/255.0, np.array(out_label)
-                out_rgb, out_label=[], []             
-    
+                yield np.stack(out_rgb, 0)/255.0, np.stack(out_mask, 0)
+                out_rgb, out_mask=[], []
 
-from keras.preprocessing.image import ImageDataGenerator
 
 
 def create_aug_gen(in_gen, image_gen, label_gen, seed = None):
