@@ -1,4 +1,6 @@
+*.h5
 *.txt
 *.ipynb_checkpoints
 *.pyc
 *.hdf5
+
