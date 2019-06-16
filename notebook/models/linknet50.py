@@ -10,11 +10,13 @@ from keras import backend as K
 def decoder_block(prevlayer, filters, prefix, strides=(1, 1)):
     conv = Conv2D(filters, (1, 1), padding="same", strides=strides, name=prefix + "_conv1")(prevlayer)
     conv = BatchNormalization(name=prefix + "_bn1")(conv)
+    conv = Activation('relu', name=prefix + "_activation1")(conv)
     conv = Conv2DTranspose(filters, (4, 4), strides=(2, 2), padding='same', name=prefix + "_Transp_conv")(conv)
     conv = BatchNormalization(name=prefix + "_bn2")(conv)
+    conv = Activation('relu', name=prefix + "_activation2")(conv)
     conv = Conv2D(filters, (1, 1), padding="same", strides=strides, name=prefix + "_conv2")(conv)
     conv = BatchNormalization(name=prefix + "_bn3")(conv)
-    conv = Activation('relu', name=prefix + "_activation")(conv)
+    conv = Activation('relu', name=prefix + "_activation3")(conv)
     return conv
 
 
