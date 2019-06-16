@@ -4,6 +4,8 @@ from keras.applications import ResNet50
 from keras import models
 from keras.layers import Input, Conv2D, Conv2DTranspose, MaxPooling2D, concatenate, Dropout, Activation 
 from keras.layers import BatchNormalization, UpSampling2D, Dropout, AvgPool2D, SpatialDropout2D
+from keras import backend as K
+
 
 def decoder_block(prevlayer, filters, prefix, strides=(1, 1)):
     conv = Conv2D(filters, (1, 1), padding="same", strides=strides, name=prefix + "_conv1")(prevlayer)
@@ -17,6 +19,8 @@ def decoder_block(prevlayer, filters, prefix, strides=(1, 1)):
 
 
 def get_linknet50(input_shape):
+    K.clear_session()
+    
     resnet_base = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet')
 
     for l in resnet_base.layers:
