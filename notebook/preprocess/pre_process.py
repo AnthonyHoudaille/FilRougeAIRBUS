@@ -90,7 +90,7 @@ def balancing_train(df, rate_of_has_ship, ship_dir_train):
     else:
         balanced_train_df = unique_img_ids
 
-    df_train = balanced_train_df[["ImageId", "ships", "has_ship"]].reset_index(drop=True)
+    df_train = balanced_train_df[["ImageId", "has_ship"]].reset_index(drop=True)
     return df_train
 
 # def make_image_gen(in_df, train_image_dir, batch_size=48, img_scalling=None):
